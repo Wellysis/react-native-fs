@@ -61,6 +61,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   private SparseArray<Uploader> uploaders = new SparseArray<>();
 
   private ReactApplicationContext reactContext;
+  private OutputStream outputStream;
 
   public RNFSManager(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -154,9 +155,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
 
-      OutputStream outputStream = getOutputStream(filepath, false);
+      outputStream = getOutputStream(filepath, false);
       outputStream.write(bytes);
-      outputStream.close();
 
       promise.resolve(null);
     } catch (Exception ex) {
@@ -169,11 +169,25 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   public void appendFile(String filepath, String base64Content, Promise promise) {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
-
-      OutputStream outputStream = getOutputStream(filepath, true);
+      if(outputStream == null){
+        outputStream = getOutputStream(filepath, false);
+      }
       outputStream.write(bytes);
-      outputStream.close();
 
+      promise.resolve(null);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
+  public void closeFile(String filepath, Promise promise) {
+    try {
+      if(outputStream !=null){
+        outputStream.close();
+        outputStream = null;
+      }
       promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();

@@ -267,6 +267,10 @@ export function write(
 	encodingOrOptions?: any
 ): Promise<void>
 
+export function closeFile(
+	filepath: string,
+): Promise<void>
+
 export function downloadFile(
 	options: DownloadFileOptions
 ): { jobId: number; promise: Promise<DownloadResult> }
