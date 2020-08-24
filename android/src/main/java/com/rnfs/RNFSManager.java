@@ -170,7 +170,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
       if(outputStream == null){
-        outputStream = getOutputStream(filepath, false);
+        outputStream = getOutputStream(filepath, true);
       }
       outputStream.write(bytes);
 
