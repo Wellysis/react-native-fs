@@ -254,6 +254,12 @@ export function writeFile(
 	encodingOrOptions?: any
 ): Promise<void>
 
+export function writeLog(
+	filepath: string,
+	contents: string,
+	encodingOrOptions?: any
+): Promise<void>
+
 export function appendFile(
 	filepath: string,
 	contents: string,

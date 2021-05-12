@@ -62,6 +62,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
   private ReactApplicationContext reactContext;
   private OutputStream outputStream;
+  private OutputStream logOutputStream;
   private InputStream inputStream;
 
   public RNFSManager(ReactApplicationContext reactContext) {
@@ -167,6 +168,22 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void writeLog(String filepath, String base64Content, ReadableMap options, Promise promise) {
+    try {
+      byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
+      if(logOutputStream == null){
+        logOutputStream = getOutputStream(filepath, false);
+      }
+      logOutputStream.write(bytes);
+
+      promise.resolve(null);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      reject(promise, filepath, ex);
+    }
+  }
+
+  @ReactMethod
   public void appendFile(String filepath, String base64Content, Promise promise) {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
@@ -188,6 +205,10 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       if(outputStream != null) {
         outputStream.close();
         outputStream = null;
+      }
+      if(logOutputStream != null) {
+        logOutputStream.close();
+        logOutputStream = null;
       }
       if(inputStream != null) {
         inputStream.close();
