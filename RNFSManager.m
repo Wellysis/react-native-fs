@@ -36,6 +36,7 @@
 @implementation RNFSManager
 
 static NSMutableDictionary *completionHandlers;
+NSFileHandle *file = nil;
 
 RCT_EXPORT_MODULE();
 
@@ -108,6 +109,17 @@ RCT_EXPORT_METHOD(stat:(NSString *)filepath
                  };
 
   resolve(attributes);
+}
+
+RCT_EXPORT_METHOD(closeFile:(NSString *)filepath
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if(file != nil) {
+        file = nil;
+    }
+
+  return resolve(nil);
 }
 
 RCT_EXPORT_METHOD(writeFile:(NSString *)filepath
@@ -298,26 +310,29 @@ RCT_EXPORT_METHOD(read:(NSString *)filepath
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
+    if(file == nil){
+        BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filepath];
 
-    if (!fileExists) {
-        return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+        if (!fileExists) {
+            return reject(@"ENOENT", [NSString stringWithFormat:@"ENOENT: no such file or directory, open '%@'", filepath], nil);
+        }
+
+        NSError *error = nil;
+
+        NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
+
+        if (error) {
+            return [self reject:reject withError:error];
+        }
+
+        if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
+            return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
+        }
+
+        // Open the file handler.
+        NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:filepath];
     }
 
-    NSError *error = nil;
-
-    NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filepath error:&error];
-
-    if (error) {
-        return [self reject:reject withError:error];
-    }
-
-    if ([attributes objectForKey:NSFileType] == NSFileTypeDirectory) {
-        return reject(@"EISDIR", @"EISDIR: illegal operation on a directory, read", nil);
-    }
-
-    // Open the file handler.
-    NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:filepath];
     if (file == nil) {
         return reject(@"EISDIR", @"EISDIR: Could not open file for reading", nil);
     }
