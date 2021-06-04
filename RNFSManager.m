@@ -1,4 +1,3 @@
-//
 //  RNFSManager.m
 //  RNFSManager
 //
@@ -36,7 +35,7 @@
 @implementation RNFSManager
 
 static NSMutableDictionary *completionHandlers;
-NSFileHandle *file = nil;
+NSFileHandle *file;
 
 RCT_EXPORT_MODULE();
 
@@ -330,7 +329,7 @@ RCT_EXPORT_METHOD(read:(NSString *)filepath
         }
 
         // Open the file handler.
-        NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:filepath];
+        file = [NSFileHandle fileHandleForReadingAtPath:filepath];
     }
 
     if (file == nil) {
